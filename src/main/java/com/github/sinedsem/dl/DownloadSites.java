@@ -36,9 +36,9 @@ public class DownloadSites {
                 if (i >= 2001) {
                     break;
                 }
-                if (i < already) {
-                    continue;
-                }
+//                if (i < already) {
+//                    continue;
+//                }
                 String fileName = dir.getAbsoluteFile() + File.separator + url.substring(7).replaceAll("/", " ").replaceAll(" ", "") + ".txt";
                 if (new File(fileName).exists()) {
                     continue;
