@@ -9,7 +9,7 @@ Ft = []
 V_model = []
 W_model = {}
 
-for line in open("data/model.txt", encoding="utf-8"):
+for line in open("model.txt", encoding="utf-8"):
     splitted_line = line.strip("\n").split(" ")
     word = splitted_line[0]
     vec = np.array([float(x) for x in splitted_line[1:]])

@@ -7,6 +7,7 @@ import org.jsoup.nodes.Document;
 import java.io.*;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class MakeTextFromHtml {
 
@@ -25,7 +26,7 @@ public class MakeTextFromHtml {
         stopwordsReader.close();
 
 
-        File textDir = new File("python/data/text");
+        File textDir = new File("python/data");
         FileUtils.cleanDirectory(textDir);
         textDir.mkdirs();
 
@@ -33,7 +34,8 @@ public class MakeTextFromHtml {
         for (File catFile : categories) {
 
             String category = catFile.getName();
-            new File("python/data/text/" + category).mkdir();
+            new File("python/data/train/" + category).mkdirs();
+            new File("python/data/test/" + category).mkdirs();
 
             File[] htmlFiles = new File("html/" + category).listFiles();
             int count = htmlFiles.length;
@@ -41,7 +43,7 @@ public class MakeTextFromHtml {
             System.out.println("Category " + category);
             for (File htmlFile : htmlFiles) {
                 try {
-                    makeText(category, htmlFile.getName());
+                    makeText(category, htmlFile.getName(), i);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -51,9 +53,10 @@ public class MakeTextFromHtml {
         }
     }
 
-    public static void makeText(String category, String filename) throws IOException {
+    public static void makeText(String category, String filename, int number) throws IOException {
         String htmlFile = "html/" + category + "/" + filename;
-        String textFile = "python/data/text/" + category + "/" + filename;
+        String folder = number < 10 ? "train" : "test";
+        String textFile = "python/data/" + folder + "/" + category + "/" + filename;
         BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(htmlFile)));
 
         StringBuilder html = new StringBuilder();
@@ -66,12 +69,12 @@ public class MakeTextFromHtml {
         Document doc = Jsoup.parse(html.toString());
 
 //        String text = doc.body().text(); // "An example link"
-        /*String text = doc.getElementsByTag("meta").stream()
+        String text = doc.getElementsByTag("meta").stream()
             .filter(e -> "description".equals(e.attr("name")) || "keywords".equals(e.attr("name")))
             .map(element -> element.attr("content")).collect(Collectors.joining(" "));
-        text = doc.getElementsByTag("title").text() + " " + text;*/
+        text = doc.getElementsByTag("title").text() + " " + text;
 
-        String text = doc.getElementsByTag("title").text();
+//        String text = doc.getElementsByTag("title").text();
 
         text = text.toLowerCase().replaceAll("[^a-z'\\-]", " ");
 
@@ -89,6 +92,9 @@ public class MakeTextFromHtml {
                 continue;
             }
             if (stopwords.contains(word)) {
+                continue;
+            }
+            if (word.length()<3){
                 continue;
             }
             sb.append(word);
