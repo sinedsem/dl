@@ -55,7 +55,7 @@ public class MakeTextFromHtml {
 
     public static void makeText(String category, String filename, int number) throws IOException {
         String htmlFile = "html/" + category + "/" + filename;
-        String folder = number < 200 ? "train" : "test";
+        String folder = number < 50 ? "train" : "test";
         String textFile = "python/data/" + folder + "/" + category + "/" + filename;
         BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(htmlFile)));
 
@@ -68,11 +68,11 @@ public class MakeTextFromHtml {
 
         Document doc = Jsoup.parse(html.toString());
 
-//        String text = doc.body().text(); // "An example link"
-        String text = doc.getElementsByTag("meta").stream()
-            .filter(e -> "description".equals(e.attr("name")) || "keywords".equals(e.attr("name")))
-            .map(element -> element.attr("content")).collect(Collectors.joining(" "));
-        text = doc.getElementsByTag("title").text() + " " + text;
+        String text = doc.body().text(); // "An example link"
+//        String text = doc.getElementsByTag("meta").stream()
+//            .filter(e -> "description".equals(e.attr("name")) || "keywords".equals(e.attr("name")))
+//            .map(element -> element.attr("content")).collect(Collectors.joining(" "));
+//        text = doc.getElementsByTag("title").text() + " " + text;
 
 //        String text = doc.getElementsByTag("title").text();
 

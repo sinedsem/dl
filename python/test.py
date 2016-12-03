@@ -60,6 +60,8 @@ for category in categories:
 weights = form_tf_idf(counts)
 weights = weights.toarray()
 
+print("tf idf done")
+
 cat_vecs = {}
 
 for cat_i in range(len(categories)):
@@ -69,6 +71,7 @@ for cat_i in range(len(categories)):
         sum += vecs[words[indexes[i]]]
     cat_vecs[categories[cat_i]] = sum
 
+print("clustered")
 
 def predict(cat_vecs, file_vecs):
     weights = {}
@@ -76,17 +79,18 @@ def predict(cat_vecs, file_vecs):
     for category in cat_vecs:
         sum = 0
         for vec in file_vecs:
-            sum += 1 - spatial.distance.cosine(cat_vecs[category], vec)
+            sum += (1 - spatial.distance.cosine(cat_vecs[category], vec)) ** 2
         weights[category] = sum
 
     key, _ = max(weights.items(), key=lambda x: x[1])
     return key
 
 
-# for cat1 in cat_vecs:
-#     for cat2 in cat_vecs:
-#         print(1 - spatial.distance.cosine(cat_vecs[cat1], cat_vecs[cat2]), end=" ")
-#     print()
+for cat1 in cat_vecs:
+    print(cat1,end=" ")
+    for cat2 in cat_vecs:
+        print(1 - spatial.distance.cosine(cat_vecs[cat1], cat_vecs[cat2]), end=" ")
+    print()
 
 predicted = []
 true_cats = []
@@ -102,9 +106,9 @@ for true_category in categories:
 
                     predicted.append(is_entertainment(predict(cat_vecs, file_vecs)))
                     true_cats.append(is_entertainment(true_category))
-        # i += 1
-        # if i > 10:
-        #     break
+        i += 1
+        if i > 50:
+            break
 print(predicted)
 print(true_cats)
 
