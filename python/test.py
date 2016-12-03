@@ -65,7 +65,7 @@ cat_vecs = {}
 for cat_i in range(len(categories)):
     indexes = [i[0] for i in sorted(enumerate(weights[cat_i]), reverse=True, key=lambda x: x[1])]
     sum = vecs[words[indexes[0]]]
-    for i in range(1, 15):
+    for i in range(1, min(100, len(words))):
         sum += vecs[words[indexes[i]]]
     cat_vecs[categories[cat_i]] = sum
 
@@ -92,7 +92,7 @@ predicted = []
 true_cats = []
 
 for true_category in categories:
-    i = 0
+    # i = 0
     for filename in glob.glob("data/test/" + true_category + "/*.txt"):
         file_vecs = []
         for line in open(filename, encoding="utf-8"):
@@ -100,11 +100,13 @@ for true_category in categories:
                 if word and word in vecs:
                     file_vecs.append(vecs[word])
 
-                    predicted = is_entertainment(predict(cat_vecs, file_vecs))
-                    true_cats = is_entertainment(true_category)
-        i += 1
-        if i > 10:
-            break
+                    predicted.append(is_entertainment(predict(cat_vecs, file_vecs)))
+                    true_cats.append(is_entertainment(true_category))
+        # i += 1
+        # if i > 10:
+        #     break
+print(predicted)
+print(true_cats)
 
 predicted = np.array(predicted)
 true_cats = np.array(true_cats)

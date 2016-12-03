@@ -55,7 +55,7 @@ public class MakeTextFromHtml {
 
     public static void makeText(String category, String filename, int number) throws IOException {
         String htmlFile = "html/" + category + "/" + filename;
-        String folder = number < 10 ? "train" : "test";
+        String folder = number < 200 ? "train" : "test";
         String textFile = "python/data/" + folder + "/" + category + "/" + filename;
         BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(htmlFile)));
 
