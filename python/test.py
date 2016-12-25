@@ -1,11 +1,26 @@
 import glob
 import operator
+import re
 
 import numpy as np
+import scipy
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import TfidfTransformer
 from scipy import spatial
 from tabulate import tabulate
+
+
+def unit_vector(vector):
+    """ Returns the unit vector of the vector.  """
+    return vector / np.linalg.norm(vector)
+
+
+def cos(v1, v2):
+    return 1 - spatial.distance.cosine(v1, v2)
+
+
+def distance(u, v):
+    return spatial.distance.euclidean(u, v)
 
 
 def form_tf_idf(counts):
@@ -18,6 +33,8 @@ def is_entertainment(category):
     return 1 if category in entertainment else 0
 
 
+print("started")
+
 vecs = {}
 
 for line in open("model.txt", encoding="utf-8"):
@@ -26,12 +43,14 @@ for line in open("model.txt", encoding="utf-8"):
     vec = np.array([float(x) for x in splitted_line[1:]])
     vecs[word] = vec
 
+print("model loaded")
+
 data = {}
 categories = []
 words = []
 
 for cats in glob.glob("data/train/*"):
-    category = cats.split("/")[-1]
+    category = cats.split("\\")[-1]
     categories.append(category)
     data[category] = {}
     for filename in glob.glob("data/train/" + category + "/*.txt"):
@@ -47,6 +66,8 @@ for cats in glob.glob("data/train/*"):
                 else:
                     data[category][word] = 1
 
+print("words counted")
+
 counts = []
 
 for category in categories:
@@ -60,43 +81,52 @@ for category in categories:
 weights = form_tf_idf(counts)
 weights = weights.toarray()
 
+#
+# weights_dict = {}
+# for category in categories:
+#     weights_dict[category] = {}
+#     for word in words:
+
+
 print("tf idf done")
 
 cat_vecs = {}
 
 for cat_i in range(len(categories)):
-    indexes = [i[0] for i in sorted(enumerate(weights[cat_i]), reverse=True, key=lambda x: x[1])]
-    sum = vecs[words[indexes[0]]]
-    for i in range(1, min(100, len(words))):
-        sum += vecs[words[indexes[i]]]
-    cat_vecs[categories[cat_i]] = sum
+    ss = np.zeros(len(vecs[words[0]]))
+    for word_i in range(len(words)):
+        word = words[word_i]
+        ss += np.dot(weights[cat_i][word_i], vecs[word])
+    cat_vecs[categories[cat_i]] = unit_vector(ss)
 
 print("clustered")
 
+
 def predict(cat_vecs, file_vecs):
-    weights = {}
+    cat_weights = {}
 
-    for category in cat_vecs:
-        sum = 0
-        for vec in file_vecs:
-            sum += (1 - spatial.distance.cosine(cat_vecs[category], vec)) ** 2
-        weights[category] = sum
+    s = np.sum(x for x in file_vecs)
+    s = unit_vector(s)
 
-    key, _ = max(weights.items(), key=lambda x: x[1])
+    for category in categories:
+        a = distance(cat_vecs[category], s)
+        cat_weights[category] = a
+
+    key, _ = min(cat_weights.items(), key=lambda x: x[1])
     return key
 
 
-for cat1 in cat_vecs:
-    print(cat1,end=" ")
-    for cat2 in cat_vecs:
-        print(1 - spatial.distance.cosine(cat_vecs[cat1], cat_vecs[cat2]), end=" ")
-    print()
+# for cat1 in cat_vecs:
+#     for cat2 in cat_vecs:
+#         print(1 - spatial.distance.cosine(cat_vecs[cat1], cat_vecs[cat2]), end=" ")
+#     print()
 
 predicted = []
 true_cats = []
 
 for true_category in categories:
     # i = 0
+    print("predicting for " + true_category)
     for filename in glob.glob("data/test/" + true_category + "/*.txt"):
         file_vecs = []
         for line in open(filename, encoding="utf-8"):
@@ -104,11 +134,11 @@ for true_category in categories:
                 if word and word in vecs:
                     file_vecs.append(vecs[word])
 
-                    predicted.append(is_entertainment(predict(cat_vecs, file_vecs)))
-                    true_cats.append(is_entertainment(true_category))
-        i += 1
-        if i > 50:
-            break
+        predicted.append(is_entertainment(predict(cat_vecs, file_vecs)))
+        true_cats.append(is_entertainment(true_category))
+        # i += 1
+        # if i > 50:
+        #     break
 print(predicted)
 print(true_cats)
 
