@@ -1,1 +1,1 @@
-# Source code for Deep Learning cource in University.
+# Source code for Deep Learning course in University.
